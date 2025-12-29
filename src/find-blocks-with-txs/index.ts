@@ -3,21 +3,24 @@ import { getBlockCounter, getBlockTransaction } from "../common/dbUtils.ts";
 export const handler = async (event: any, context: any) => {
     const { queryStringParameters } = event;
 
-    const inputBlockNumber = parseInt(queryStringParameters.blockNumber);
+    const blockNumberInput = parseInt(queryStringParameters.blockNumber);
 
-    if (!Number.isFinite(inputBlockNumber)) {
+    if (queryStringParameters.blockNumber && !Number.isFinite(blockNumberInput)) {
         return { statusCode: 400, body: 'invalid blockNumber' };
     }
 
-    let blockNumber = queryStringParameters?.blockNumber ? parseInt(queryStringParameters.blockNumber) : (await getBlockCounter())!.last_captured;
+    const lastCapturedBlock = (await getBlockCounter())!.last_captured;
+
+    const initialblockNumber = queryStringParameters?.blockNumber ? blockNumberInput <= lastCapturedBlock ? blockNumberInput : lastCapturedBlock : lastCapturedBlock;
 
     const blocksWithTxs = [];
+    let blockNumberIterator = initialblockNumber;
 
     for (let index = 0; index < 100; index++) {
-        const { previous_block_with_txs: previousBlockWithTxs, transactions } = await getBlockTransaction(blockNumber);
+        const { previous_block_with_txs: previousBlockWithTxs, transactions } = await getBlockTransaction(blockNumberIterator);
 
         if (index === 0 && transactions?.size) {
-            blocksWithTxs.push(blockNumber);
+            blocksWithTxs.push(blockNumberIterator);
         }
 
         if (previousBlockWithTxs === 0) {
@@ -25,8 +28,8 @@ export const handler = async (event: any, context: any) => {
         }
 
         blocksWithTxs.push(previousBlockWithTxs);
-        blockNumber = previousBlockWithTxs;
+        blockNumberIterator = previousBlockWithTxs;
     };
 
-    return { statusCode: 200, body: JSON.stringify(blocksWithTxs) };
+    return { statusCode: 200, body: JSON.stringify({ initialblockNumber, blocksWithTxs }) };
 };
