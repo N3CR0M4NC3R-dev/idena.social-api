@@ -56,9 +56,9 @@ export const getBlockTransaction = async (blockNumber: number) => {
   };
 
   try {
-    return (await docClient.send(new GetCommand(params))).Item as BlockTransaction;
+    return (await docClient.send(new GetCommand(params))).Item || {} as BlockTransaction;
   } catch (err) {
     console.error('Error getBlockTransaction:', err);
-    throw 'dynamodb getBlockTransaction error';
+    return {} as BlockTransaction;
   }
 };

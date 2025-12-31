@@ -16,8 +16,12 @@ export const handler = async (event: any, context: any) => {
     const blocksWithTxs = [];
     let blockNumberIterator = initialblockNumber;
 
+    let previousBlockWithTxs = 0;
+
     for (let index = 0; index < 100; index++) {
-        const { previous_block_with_txs: previousBlockWithTxs, transactions } = await getBlockTransaction(blockNumberIterator);
+        const { previous_block_with_txs, transactions } = await getBlockTransaction(blockNumberIterator);
+
+        previousBlockWithTxs = previous_block_with_txs ?? previousBlockWithTxs;
 
         if (index === 0 && transactions?.size) {
             blocksWithTxs.push(blockNumberIterator);

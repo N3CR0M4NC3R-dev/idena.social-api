@@ -34,9 +34,9 @@ export const handler = async (event: any, context: any) => {
 
     let initialBlock = initial > (last_captured + 1) ? initial : last_captured + 1;
 
-    const { transactions } = await getBlockTransaction(last_captured);
+    const blockTransaction = await getBlockTransaction(last_captured);
 
-    previousBlockWithTxsRef.current = transactions?.size ? last_captured : last_captured_with_txs;
+    previousBlockWithTxsRef.current = blockTransaction.transactions?.size ? last_captured : last_captured_with_txs;
 
     let recurseForwardIntervalId: NodeJS.Timeout;
     let consecutiveBlockFoundCount = 0;
